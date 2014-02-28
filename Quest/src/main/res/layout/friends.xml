@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical"
+              android:padding="40dip">
+
+    <TextView android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:text="Courageous Journeymen"
+              android:textSize="30dip"
+              android:gravity="center"
+              android:layout_marginTop="15dip"
+              android:textColor="#ffffff"/>
+
+    <!--  Error message -->
+    <TextView android:id="@+id/friends_error"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:textColor="#e30000"
+              android:padding="6dip"
+              android:textStyle="bold"/>
+
+    <Button android:id="@+id/btnAddFriends"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:text="Bestow a new Journeymen"
+            android:layout_gravity="left"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#ffffff"
+            android:padding="6dip" />
+
+    <ListView android:id="@+id/friendListView"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent" />
+
+</LinearLayout>
+
