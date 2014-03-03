@@ -31,13 +31,23 @@
 
     <ListView
         android:id="@+id/challengeListView"
-        android:layout_below="@+id/textView"
+        android:layout_below="@+id/btnSync"
         android:layout_above="@+id/btnLogout"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="20dip"
         android:layout_marginTop="5dip"
         android:layout_marginRight="450dip" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sync"
+        android:textSize="15dip"
+        android:textColor="#ffffff"
+        android:textStyle="bold"
+        android:id="@+id/btnSync"
+        android:layout_alignRight="@+id/challengeListView"
+        android:layout_below="@+id/textView"/>
 
     <RelativeLayout
         android:layout_width="fill_parent"

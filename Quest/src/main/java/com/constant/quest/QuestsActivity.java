@@ -70,6 +70,7 @@ public class QuestsActivity extends Fragment {
     static String uid = "";
     static String expiration_time = "";
     static String selectChallenge;
+    static String syncableChallengeID;
     static String visibleExp;
     static String visibleDist;
     static String visibleBear;
@@ -124,6 +125,7 @@ public class QuestsActivity extends Fragment {
         imgViewBearing = (ImageView)v.findViewById(R.id.imgViewBearing);
         imgViewNeedle = (ImageView)v.findViewById(R.id.imgViewNeedle);
         Button btnLogout = (Button)v.findViewById(R.id.btnLogout);
+        Button btnSync = (Button)v.findViewById(R.id.btnSync);
         // Set up Resources
         userFunctions = new UserFunctions();
         bmpOriginal = BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.bearing3);
@@ -157,7 +159,7 @@ public class QuestsActivity extends Fragment {
                 MINIMUM_DISTANCE_CHANGE_FOR_UPDATES,
                 new MyLocationListener()
         );
-        syncRemLoc();
+//        syncRemLoc();
         startUpdateListView();
         // Start Listener for Log-out button
         btnLogout.setOnClickListener(new View.OnClickListener() {
@@ -165,6 +167,11 @@ public class QuestsActivity extends Fragment {
                 Intent i = new Intent(getActivity(),
                 LogOutActivity.class);
                 startActivity(i);
+            }
+        });
+        btnSync.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                syncRemLoc();
             }
         });
         return v;
@@ -283,10 +290,18 @@ public class QuestsActivity extends Fragment {
                 sb.deleteCharAt(sb.length()-1);
                 uid = sb.toString();
             }
+            // get list of current challenges
+            String selected_id = "";
+            DatabaseHandler db5 = DatabaseHandler.getInstance(getActivity());
+            Cursor cursor = db5.getChallengeIDs(uid);
+            selected_id += (cursor.getString(cursor.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID))) + ", ";
+            cursor.moveToNext();
+            selected_id = selected_id.substring(0, selected_id.length() - 2);
             List<NameValuePair> params2 = new ArrayList<NameValuePair>();
             params2.add(new BasicNameValuePair("tag", "syncAdd_challenges"));
             params2.add(new BasicNameValuePair("user", uid));
-            // getting JSON Object
+            params2.add(new BasicNameValuePair("ID", selected_id));
+            // Pass the list on to the server
             JSONObject json2 = jsonParser.getJSONFromUrl(friendsURL, params2);
             // check for response
             try {
@@ -303,8 +318,9 @@ public class QuestsActivity extends Fragment {
             catch (JSONException e) {
                 e.printStackTrace();
             }
+            // TODO Finish the Sync
             DatabaseHandler db3 = DatabaseHandler.getInstance(getActivity());
-            String cid = db3.fetchSyncableChallanges(uid).toString();
+            String cid = db3.fetchSyncableChallenges(uid).toString();
             List<NameValuePair> params3 = new ArrayList<NameValuePair>();
             params3.add(new BasicNameValuePair("tag", "syncRem_challenges"));
             params3.add(new BasicNameValuePair("user", uid));

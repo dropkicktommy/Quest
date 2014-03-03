@@ -38,6 +38,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_LATITUDE = "latitude";
     public static final String KEY_ACCEPTED_AT = "accepted_at";
     public static final String KEY_TIME_TO_EXPIRE = "time_to_expire";
+    public static final String KEY_SYNC_STATUS = "sync_status";
     public static final String KEY_EXPIRES_IN = "expires_in";
     public static final String KEY_DISTANCE_FROM = "distance_from";
     public static final String KEY_BEARING_TO = "bearing_to";
@@ -99,6 +100,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + KEY_LATITUDE + " TEXT,"
                 + KEY_ACCEPTED_AT + " TEXT,"
                 + KEY_TIME_TO_EXPIRE + " TEXT,"
+                + KEY_SYNC_STATUS + " TEXT,"
                 + KEY_EXPIRES_IN + " TEXT,"
                 + KEY_DISTANCE_FROM + " TEXT,"
                 + KEY_BEARING_TO + " TEXT,"
@@ -178,17 +180,36 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * */
     public void updateChallenges(String values, String user_id) {
                 // Update current challenge list from local database
-        String challengeRemoveQuery = "DELETE FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = '" + user_id + "'";
-        SQLiteDatabase db = this.getWritableDatabase();
-        if (db!=null){
-            db.execSQL(challengeRemoveQuery);
-
-        }
+//        String challengeRemoveQuery = "DELETE FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = '" + user_id + "'";
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        if (db!=null){
+//            db.execSQL(challengeRemoveQuery);
+//        }
         String challengeUpdateQuery = "INSERT INTO " + TABLE_CHALLENGE + "(" + KEY_USERID + ", " + KEY_CHALLENGE_ID +", " + KEY_NAME + ", " + KEY_CREATED_BY + ", " + KEY_LONGITUDE + ", " + KEY_LATITUDE + ", " + KEY_ACCEPTED_AT + "," + KEY_TIME_TO_EXPIRE + ") VALUES" + values;
         SQLiteDatabase db2 = this.getWritableDatabase();
         if (db2!=null){
             db2.execSQL(challengeUpdateQuery);
+        }
+    }
 
+    public Cursor getChallengeIDs(String user_id) {
+
+        String challengeQuery = "SELECT " + KEY_CHALLENGE_ID + " FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = '" + user_id + "'";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor mCursor = db.rawQuery(challengeQuery, null);
+
+        if (mCursor != null) {
+            mCursor.moveToFirst();
+        }
+
+        return mCursor;
+
+    }
+    public void syncChallenges(String challenge_id, String user_id) {
+        String challengeUpdateQuery = "UPDATE " + TABLE_CHALLENGE + " SET " + KEY_SYNC_STATUS + " = '1' ' WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_CHALLENGE_ID + " = '" + challenge_id + "'";
+        SQLiteDatabase db2 = this.getWritableDatabase();
+        if (db2!=null){
+            db2.execSQL(challengeUpdateQuery);
         }
     }
 
@@ -211,7 +232,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         }
     }
-    public HashMap<String, String> fetchSyncableChallanges(String user_id) {
+    public HashMap<String, String> fetchSyncableChallenges(String user_id) {
         HashMap<String,String> CID = new HashMap<String,String>();
         // Clear a challenge from local database
         SQLiteDatabase db = this.getReadableDatabase();
@@ -340,7 +361,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
     public Cursor fetchAllChallenges(String user_id) {
 
-        String challengeQuery = "SELECT * FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_PENDING_DELETION + " = ''";
+        String challengeQuery = "SELECT * FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = '" + user_id + "'";
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor mCursor = db.rawQuery(challengeQuery, null);
 
