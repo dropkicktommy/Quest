@@ -38,7 +38,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_LATITUDE = "latitude";
     public static final String KEY_ACCEPTED_AT = "accepted_at";
     public static final String KEY_TIME_TO_EXPIRE = "time_to_expire";
-    public static final String KEY_SYNC_STATUS = "sync_status";
     public static final String KEY_EXPIRES_IN = "expires_in";
     public static final String KEY_DISTANCE_FROM = "distance_from";
     public static final String KEY_BEARING_TO = "bearing_to";
@@ -100,7 +99,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + KEY_LATITUDE + " TEXT,"
                 + KEY_ACCEPTED_AT + " TEXT,"
                 + KEY_TIME_TO_EXPIRE + " TEXT,"
-                + KEY_SYNC_STATUS + " TEXT,"
                 + KEY_EXPIRES_IN + " TEXT,"
                 + KEY_DISTANCE_FROM + " TEXT,"
                 + KEY_BEARING_TO + " TEXT,"
@@ -205,13 +203,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return mCursor;
 
     }
-    public void syncChallenges(String challenge_id, String user_id) {
-        String challengeUpdateQuery = "UPDATE " + TABLE_CHALLENGE + " SET " + KEY_SYNC_STATUS + " = '1' ' WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_CHALLENGE_ID + " = '" + challenge_id + "'";
-        SQLiteDatabase db2 = this.getWritableDatabase();
-        if (db2!=null){
-            db2.execSQL(challengeUpdateQuery);
-        }
-    }
+//    public void syncChallenges(String challenge_id, String user_id) {
+//        String challengeUpdateQuery = "UPDATE " + TABLE_CHALLENGE + " SET " + KEY_SYNC_STATUS + " = '1' ' WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_CHALLENGE_ID + " = '" + challenge_id + "'";
+//        SQLiteDatabase db2 = this.getWritableDatabase();
+//        if (db2!=null){
+//            db2.execSQL(challengeUpdateQuery);
+//        }
+//    }
 
     public void updateDistanceFrom(String user_id, String challenge_id, String distance_to_point, String bearing_to_point, String expiration_time) {
         // Update current Distance from goal in local database
@@ -236,7 +234,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         HashMap<String,String> CID = new HashMap<String,String>();
         // Clear a challenge from local database
         SQLiteDatabase db = this.getReadableDatabase();
-        String getSyncable = "SELECT " + KEY_CHALLENGE_ID + " WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_PENDING_DELETION + " = 'true'";
+        String getSyncable = "SELECT " + KEY_CHALLENGE_ID + " From " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_PENDING_DELETION + " = 'true'";
         if (db!=null){
             Cursor cursor = db.rawQuery(getSyncable, null);
             // Move to first row

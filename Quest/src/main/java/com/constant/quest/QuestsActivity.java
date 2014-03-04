@@ -85,7 +85,7 @@ public class QuestsActivity extends Fragment {
     SimpleCursorAdapter dataAdapter;
 
     public AsyncTask<Void, String, Void> task3 = new UpdateAsyncTask();
-    public AsyncTask<Void, String, Void> task4 = new UpdateAsyncTask();
+    public AsyncTask<Void, String, Void> task4 = new syncAsyncTask();
 
     private static String friendsURL = "http://caching.elasticbeanstalk.com:80";
 
