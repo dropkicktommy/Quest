@@ -318,7 +318,7 @@ public class QuestsActivity extends Fragment {
             catch (JSONException e) {
                 e.printStackTrace();
             }
-            // TODO Finish the Sync
+            // TODO Finish the Sync ...now!
             DatabaseHandler db3 = DatabaseHandler.getInstance(getActivity());
             String cid = db3.fetchSyncableChallenges(uid).toString();
             List<NameValuePair> params3 = new ArrayList<NameValuePair>();
