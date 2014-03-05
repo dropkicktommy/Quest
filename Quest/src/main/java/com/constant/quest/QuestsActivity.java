@@ -294,6 +294,7 @@ public class QuestsActivity extends Fragment {
             String selected_id = "";
             DatabaseHandler db5 = DatabaseHandler.getInstance(getActivity());
             Cursor cursor = db5.getChallengeIDs(uid);
+            // TODO Fix this
             selected_id += (cursor.getString(cursor.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID))) + ", ";
             cursor.moveToNext();
             selected_id = selected_id.substring(0, selected_id.length() - 2);
@@ -358,7 +359,7 @@ public class QuestsActivity extends Fragment {
             while (mRunning) {
                 while (!isCancelled()) {
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(100);
                         DatabaseHandler db0 = DatabaseHandler.getInstance(getActivity());
                         StringBuilder sb = new StringBuilder(); {
                             String UID = db0.getUID().toString();
