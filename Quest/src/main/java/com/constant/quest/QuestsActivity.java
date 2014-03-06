@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Surface;
@@ -295,9 +296,15 @@ public class QuestsActivity extends Fragment {
             DatabaseHandler db5 = DatabaseHandler.getInstance(getActivity());
             Cursor cursor = db5.getChallengeIDs(uid);
             // TODO Fix this
-            selected_id += (cursor.getString(cursor.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID))) + ", ";
-            cursor.moveToNext();
-            selected_id = selected_id.substring(0, selected_id.length() - 2);
+            int count = cursor.getCount();
+            for (int i = 0;
+                    i < count;
+                    i++) {
+                selected_id += (cursor.getString(cursor.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID))) + ", ";
+                cursor.moveToNext();
+            }
+            Log.e("Out", selected_id);
+//            selected_id = selected_id.substring(0, selected_id.length() - 2);
             List<NameValuePair> params2 = new ArrayList<NameValuePair>();
             params2.add(new BasicNameValuePair("tag", "syncAdd_challenges"));
             params2.add(new BasicNameValuePair("user", uid));
@@ -505,7 +512,7 @@ public class QuestsActivity extends Fragment {
     private final SensorEventListener mSensorListener = new SensorEventListener(){
         @Override
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
-            // TODO Auto-generated method stub
+
         }
         @Override
         public void onSensorChanged(SensorEvent event) {
