@@ -295,7 +295,6 @@ public class QuestsActivity extends Fragment {
             String selected_id = "";
             DatabaseHandler db5 = DatabaseHandler.getInstance(getActivity());
             Cursor cursor = db5.getChallengeIDs(uid);
-            // TODO Fix this
             int count = cursor.getCount();
             for (int i = 0;
                     i < count;
@@ -304,7 +303,10 @@ public class QuestsActivity extends Fragment {
                 cursor.moveToNext();
             }
             Log.e("Out", selected_id);
-//            selected_id = selected_id.substring(0, selected_id.length() - 2);
+            if (selected_id.startsWith("[")) {
+                selected_id = selected_id.substring(0,selected_id.length()-2);
+            }
+            Log.e("Out", selected_id);
             List<NameValuePair> params2 = new ArrayList<NameValuePair>();
             params2.add(new BasicNameValuePair("tag", "syncAdd_challenges"));
             params2.add(new BasicNameValuePair("user", uid));

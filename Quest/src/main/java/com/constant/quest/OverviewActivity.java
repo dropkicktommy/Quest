@@ -55,7 +55,8 @@ public class OverviewActivity extends Activity {
         userFunctions = new UserFunctions();
         if(userFunctions.isUserLoggedIn(getApplicationContext())) {
             if(isOnline()) {
-                updateLists();
+                // TODO remove this
+//                updateLists();
             }
             Intent PageView = new Intent(getApplicationContext(), PageViewActivity.class);
             PageView.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
