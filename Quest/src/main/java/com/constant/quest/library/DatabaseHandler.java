@@ -203,13 +203,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return mCursor;
 
     }
-//    public void syncChallenges(String challenge_id, String user_id) {
-//        String challengeUpdateQuery = "UPDATE " + TABLE_CHALLENGE + " SET " + KEY_SYNC_STATUS + " = '1' ' WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_CHALLENGE_ID + " = '" + challenge_id + "'";
-//        SQLiteDatabase db2 = this.getWritableDatabase();
-//        if (db2!=null){
-//            db2.execSQL(challengeUpdateQuery);
-//        }
-//    }
+    public Cursor getChallengeIDsForDeletion(String user_id) {
+        String challengeQuery = "SELECT " + KEY_CHALLENGE_ID + " FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_PENDING_DELETION + " = 'YES'";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor mCursor = db.rawQuery(challengeQuery, null);
+
+        if (mCursor != null) {
+            mCursor.moveToFirst();
+        }
+
+        return mCursor;
+
+    }
 
     public void updateDistanceFrom(String user_id, String challenge_id, String distance_to_point, String bearing_to_point, String expiration_time) {
         // Update current Distance from goal in local database
@@ -229,22 +234,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             db.execSQL(updateChallengeAcceptance);
 
         }
-    }
-    public HashMap<String, String> fetchSyncableChallenges(String user_id) {
-        HashMap<String,String> CID = new HashMap<String,String>();
-        // Clear a challenge from local database
-        SQLiteDatabase db = this.getReadableDatabase();
-        String getSyncable = "SELECT " + KEY_CHALLENGE_ID + " From " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_PENDING_DELETION + " = 'true'";
-        if (db!=null){
-            Cursor cursor = db.rawQuery(getSyncable, null);
-            // Move to first row
-            cursor.moveToFirst();
-            if(cursor.getCount() > 0){
-                CID.put("cid", cursor.getString(0));
-            }
-        }
-        // return CID
-        return CID;
     }
 
     public void deleteChallenge(String user_id, String challenge_id) {

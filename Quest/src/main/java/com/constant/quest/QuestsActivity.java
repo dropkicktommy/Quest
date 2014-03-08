@@ -302,11 +302,9 @@ public class QuestsActivity extends Fragment {
                 selected_id += (cursor.getString(cursor.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID))) + ", ";
                 cursor.moveToNext();
             }
-            Log.e("Out", selected_id);
             if (selected_id.startsWith("[")) {
                 selected_id = selected_id.substring(0,selected_id.length()-2);
             }
-            Log.e("Out", selected_id);
             List<NameValuePair> params2 = new ArrayList<NameValuePair>();
             params2.add(new BasicNameValuePair("tag", "syncAdd_challenges"));
             params2.add(new BasicNameValuePair("user", uid));
@@ -329,22 +327,35 @@ public class QuestsActivity extends Fragment {
                 e.printStackTrace();
             }
             // TODO Finish the Sync ...now!
+            String deletion_id = "";
             DatabaseHandler db3 = DatabaseHandler.getInstance(getActivity());
-            String cid = db3.fetchSyncableChallenges(uid).toString();
+            Cursor cursor2 = db3.getChallengeIDsForDeletion(uid);
+            int count2 = cursor2.getCount();
+            for (int i = 0;
+                 i < count2;
+                 i++) {
+                deletion_id += (cursor.getString(cursor.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID))) + ", ";
+                cursor.moveToNext();
+            }
+            if (deletion_id.startsWith("[")) {
+                deletion_id = deletion_id.substring(0,deletion_id.length()-2);
+            }
             List<NameValuePair> params3 = new ArrayList<NameValuePair>();
             params3.add(new BasicNameValuePair("tag", "syncRem_challenges"));
             params3.add(new BasicNameValuePair("user", uid));
-            params3.add(new BasicNameValuePair("cid", cid));
-            // getting JSON Object
+            params3.add(new BasicNameValuePair("ID", deletion_id));
+            // Pass the list on to the server
             JSONObject json3 = jsonParser.getJSONFromUrl(friendsURL, params3);
             // check for response
             try {
                 if (json3.getString(KEY_SUCCESS) != null) {
                     String res = json3.getString(KEY_SUCCESS);
                     if(Integer.parseInt(res) == 1){
-                        // Update list of challenges in local Database to reflect deletions
+                        // Update list of challenges in SQLite Database
+                        // TODO Change below for deletion
                         DatabaseHandler db4 = DatabaseHandler.getInstance(getActivity());
-                        db4.deleteChallenge(uid, cid);
+                        JSONObject json_listChallenges = json3.getJSONObject("challenge_list");
+                        db4.updateChallenges(json_listChallenges.getString("values"), uid);
                     }
                 }
             }
