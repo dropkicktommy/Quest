@@ -236,11 +236,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void deleteChallenge(String user_id, String challenge_id) {
-        // Clear a challenge from local database
+    public void deleteChallenges(String user_id) {
+        // Clear challenges pending deletion from local database
         SQLiteDatabase db = this.getWritableDatabase();
+        String deletionQuery = "DELETE * FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = " + user_id + " AND " + KEY_PENDING_DELETION + " = 'YES'";
         if (db!=null){
-            db.delete(TABLE_CHALLENGE, KEY_USERID+"="+user_id+" and "+KEY_CHALLENGE_ID+"="+challenge_id, null);
+            db.rawQuery(deletionQuery, null);
         }
     }
 

@@ -326,7 +326,6 @@ public class QuestsActivity extends Fragment {
             catch (JSONException e) {
                 e.printStackTrace();
             }
-            // TODO Finish the Sync ...now!
             String deletion_id = "";
             DatabaseHandler db3 = DatabaseHandler.getInstance(getActivity());
             Cursor cursor2 = db3.getChallengeIDsForDeletion(uid);
@@ -351,11 +350,9 @@ public class QuestsActivity extends Fragment {
                 if (json3.getString(KEY_SUCCESS) != null) {
                     String res = json3.getString(KEY_SUCCESS);
                     if(Integer.parseInt(res) == 1){
-                        // Update list of challenges in SQLite Database
-                        // TODO Change below for deletion
+                        // Delete list of challenges pending deletion in SQLite Database
                         DatabaseHandler db4 = DatabaseHandler.getInstance(getActivity());
-                        JSONObject json_listChallenges = json3.getJSONObject("challenge_list");
-                        db4.updateChallenges(json_listChallenges.getString("values"), uid);
+                        db4.deleteChallenges(uid);
                     }
                 }
             }
