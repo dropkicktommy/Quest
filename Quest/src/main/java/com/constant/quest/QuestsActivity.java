@@ -1,6 +1,8 @@
 package com.constant.quest;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -29,6 +31,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
@@ -49,6 +52,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -221,38 +226,69 @@ public class QuestsActivity extends Fragment {
                 // Get the challenges ID from this row in the database.
                 selectChallenge = cursor.getString(cursor.getColumnIndexOrThrow("challenge_id"));
                 String startDate = cursor.getString(cursor.getColumnIndexOrThrow("accepted_at"));
-                if(isOnline()) {
-                    if (startDate != null && startDate .equals("")) {
-                        List<NameValuePair> params = new ArrayList<NameValuePair>();
-                        params.add(new BasicNameValuePair("tag", "accept_challenge"));
-                        params.add(new BasicNameValuePair("user", uid));
-                        params.add(new BasicNameValuePair("challengeID", selectChallenge));
-                        // getting JSON Object
-                        JSONObject json = jsonParser.getJSONFromUrl(friendsURL, params);
-                        // check for response
-                        try {
-                            if (json.getString(KEY_SUCCESS) != null) {
-                                String res = json.getString(KEY_SUCCESS);
-                                if(Integer.parseInt(res) == 1){
-                                    // challenge successfully accepted
-                                    // Store details in SQLite Database
-                                    DatabaseHandler db3 = DatabaseHandler.getInstance(getActivity());
-                                    JSONObject json_accept = json.getJSONObject("challenge");
-                                    db3.acceptChallenge(uid, selectChallenge, json_accept.getString("accepted_at"), json_accept.getString("expires"));
-                                }
-                            }
-                        }
-                        catch (JSONException e) {
-                        e.printStackTrace();
-                        }
-                    }
+                // get accept_reject.xml view
+                LayoutInflater li = LayoutInflater.from(getActivity());
+                View decisionView = li.inflate(R.layout.accept_reject, null);
+                View decisionView2 = li.inflate(R.layout.reject, null);
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                        getActivity());
+                // set accept_reject.xml to alert dialog builder
+                if (startDate != null && startDate .equals("")) {
+                    alertDialogBuilder.setView(decisionView);
                 }
                 else {
-                    Toast.makeText(getActivity(),
-                    "No internet Connection available", Toast.LENGTH_SHORT).show();
+                    alertDialogBuilder.setView(decisionView2);
                 }
+                if (startDate != null && startDate .equals("")) {
+                    // set dialog message
+                    alertDialogBuilder
+                            .setCancelable(true)
+                            .setPositiveButton("Humbly Accept",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
+                                            DatabaseHandler db3 = DatabaseHandler.getInstance(getActivity());
+                                            db3.acceptChallenge(uid, selectChallenge, timeStamp, "24");
+                                            dialog.cancel();
+                                        }
+                                    }
+                            )
+                            .setNegativeButton("Vehemently Reject",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            DatabaseHandler db9 = DatabaseHandler.getInstance(getActivity());
+                                            db9.flagChallenges(uid, selectChallenge, "YES");
+                                            dialog.cancel();
+                                        }
+                                    }
+                            );
+                }
+                else {
+                    // set dialog message
+                    alertDialogBuilder
+                            .setCancelable(true)
+                            .setPositiveButton("Remove",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            DatabaseHandler db3 = DatabaseHandler.getInstance(getActivity());
+                                            db3.flagChallenges(uid, selectChallenge, "YES");
+                                            dialog.cancel();
+                                        }
+                                    }
+                            )
+                            .setNegativeButton("Cancel",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog,int id) {
+                                            dialog.cancel();
+                                        }
+                                    }
+                            );
+                }
+                // create alert dialog
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                // show it
+                alertDialog.show();
             }
-
         });
     }
 
@@ -302,9 +338,11 @@ public class QuestsActivity extends Fragment {
                 selected_id += (cursor.getString(cursor.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID))) + ", ";
                 cursor.moveToNext();
             }
-            if (selected_id.startsWith("[")) {
+
+            if (selected_id.startsWith("5")) {
                 selected_id = selected_id.substring(0,selected_id.length()-2);
             }
+
             List<NameValuePair> params2 = new ArrayList<NameValuePair>();
             params2.add(new BasicNameValuePair("tag", "syncAdd_challenges"));
             params2.add(new BasicNameValuePair("user", uid));
@@ -333,12 +371,15 @@ public class QuestsActivity extends Fragment {
             for (int i = 0;
                  i < count2;
                  i++) {
-                deletion_id += (cursor.getString(cursor.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID))) + ", ";
-                cursor.moveToNext();
+                deletion_id += (cursor2.getString(cursor2.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID))) + ", ";
+                cursor2.moveToNext();
             }
-            if (deletion_id.startsWith("[")) {
+
+            if (deletion_id.startsWith("5")) {
                 deletion_id = deletion_id.substring(0,deletion_id.length()-2);
             }
+
+
             List<NameValuePair> params3 = new ArrayList<NameValuePair>();
             params3.add(new BasicNameValuePair("tag", "syncRem_challenges"));
             params3.add(new BasicNameValuePair("user", uid));

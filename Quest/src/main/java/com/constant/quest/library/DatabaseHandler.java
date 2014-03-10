@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.util.HashMap;
 
@@ -41,7 +42,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_EXPIRES_IN = "expires_in";
     public static final String KEY_DISTANCE_FROM = "distance_from";
     public static final String KEY_BEARING_TO = "bearing_to";
-    public static final String KEY_PENDING_DELETION = "synced";
+    public static final String KEY_PENDING_DELETION = "deletable";
     private static DatabaseHandler sInstance = null;
 
     public static DatabaseHandler getInstance(Context context) {
@@ -102,7 +103,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + KEY_EXPIRES_IN + " TEXT,"
                 + KEY_DISTANCE_FROM + " TEXT,"
                 + KEY_BEARING_TO + " TEXT,"
-                + KEY_PENDING_DELETION + " TEXT" + ")";
+                + KEY_PENDING_DELETION + " TEXT DEFAULT 'NO'" + ")";
         db.execSQL(CREATE_CHALLENGE_TABLE);
     }
 
@@ -204,7 +205,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     }
     public Cursor getChallengeIDsForDeletion(String user_id) {
-        String challengeQuery = "SELECT " + KEY_CHALLENGE_ID + " FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_PENDING_DELETION + " = 'YES'";
+        String challengeQuery = "SELECT " + KEY_CHALLENGE_ID + " FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " IS '" + user_id + "' AND " + KEY_PENDING_DELETION + " IS 'YES'";
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor mCursor = db.rawQuery(challengeQuery, null);
 
@@ -235,13 +236,22 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         }
     }
+    public void flagChallenges(String user_id, String challenge_id, String flag) {
+        // Clear challenges pending deletion from local database
+        SQLiteDatabase db = this.getWritableDatabase();
+        String deletionQuery = "UPDATE " + TABLE_CHALLENGE + " SET " + KEY_PENDING_DELETION + " = '" + flag + "' WHERE " + KEY_CHALLENGE_ID + " = '" + challenge_id + "' AND " + KEY_USERID + " = '" + user_id + "'";
+        Log.e("query", deletionQuery);
+        if (db!=null){
+            db.execSQL(deletionQuery);
+        }
+    }
 
     public void deleteChallenges(String user_id) {
         // Clear challenges pending deletion from local database
         SQLiteDatabase db = this.getWritableDatabase();
-        String deletionQuery = "DELETE * FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = " + user_id + " AND " + KEY_PENDING_DELETION + " = 'YES'";
+        String deletionQuery = "DELETE FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_PENDING_DELETION + " = 'YES'";
         if (db!=null){
-            db.rawQuery(deletionQuery, null);
+            db.execSQL(deletionQuery);
         }
     }
 
@@ -348,9 +358,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return mCursor;
     }
     public Cursor fetchAllChallenges(String user_id) {
-
-        String challengeQuery = "SELECT * FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = '" + user_id + "'";
+        String challengeQuery = "SELECT * FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " IS '" + user_id + "' AND " + KEY_PENDING_DELETION + " IS NOT 'YES'";
+//        Log.e("Query", challengeQuery);
         SQLiteDatabase db = this.getReadableDatabase();
+//        String whereClause = KEY_USERID + " = ? AND " + KEY_EXPIRES_IN + "!= ?";
+//        String[] whereArgs = new String[]{
+//                user_id,
+//                "YES"
+//        };
+//        Cursor mCursor = db.query(TABLE_CHALLENGE, null, whereClause, whereArgs, null, null, null);
         Cursor mCursor = db.rawQuery(challengeQuery, null);
 
         if (mCursor != null) {
