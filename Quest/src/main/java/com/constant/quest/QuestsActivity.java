@@ -90,9 +90,6 @@ public class QuestsActivity extends Fragment {
 
     SimpleCursorAdapter dataAdapter;
 
-    public AsyncTask<Void, String, Void> task3 = new UpdateAsyncTask();
-    public AsyncTask<Void, String, Void> task4 = new syncAsyncTask();
-
     private static String friendsURL = "http://caching.elasticbeanstalk.com:80";
 
     private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 1; // in Meters
@@ -309,7 +306,7 @@ public class QuestsActivity extends Fragment {
         }
     }
     public void syncRemLoc() {
-        new syncAsyncTask();
+        AsyncTask<Void, String, Void> task4 = new syncAsyncTask();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
             task4.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         else
@@ -404,7 +401,7 @@ public class QuestsActivity extends Fragment {
         }
     }
     public void startUpdateListView() {
-        new UpdateAsyncTask();
+        AsyncTask<Void, String, Void> task3 = new UpdateAsyncTask();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
             task3.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         else
