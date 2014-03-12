@@ -78,15 +78,17 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:id="@+id/textViewClock"
-            android:layout_below="@+id/imgViewBearing"
-            android:layout_alignParentLeft="true" />
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentBottom="true"
+            android:textColor="#ffffff" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:id="@+id/textViewDistance"
-            android:layout_below="@+id/imgViewBearing"
-            android:layout_alignParentRight="true" />
+            android:layout_above="@+id/textViewClock"
+            android:layout_alignParentLeft="true"
+            android:textColor="#ffffff" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -96,7 +98,8 @@
             android:layout_alignParentStart="false"
             android:layout_alignParentEnd="false"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true" />
+            android:layout_alignParentRight="true"
+            android:textColor="#ffffff" />
     </RelativeLayout>
 
 

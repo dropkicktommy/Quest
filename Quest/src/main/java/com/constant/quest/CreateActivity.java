@@ -175,7 +175,7 @@ public class CreateActivity extends Fragment {
                 );
 
                 Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
+                // TODO allow challenges to be created offline and stored until sync is available
                 if(isOnline() && location != null) {
                     DatabaseHandler db = DatabaseHandler.getInstance(getActivity());
                     String name = inputChallengeName.getText().toString();

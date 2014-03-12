@@ -23,7 +23,8 @@
             android:layout_alignLeft="@+id/name"
             android:text="By: "
             android:textSize="15dip"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+        android:textColor="#ffffff" />
 
     <TextView
             android:id="@+id/created_by"
@@ -33,7 +34,8 @@
             android:layout_alignBottom="@+id/textView1"
             android:layout_toRightOf="@+id/textView1"
             android:text="TextView"
-            android:textSize="15dip" />
+            android:textSize="15dip"
+        android:textColor="#ffffff" />
 
     <TextView
             android:id="@+id/distance"
