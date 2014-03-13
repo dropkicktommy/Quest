@@ -214,7 +214,7 @@ public class QuestsActivity extends Fragment {
         Parcelable state = listView.onSaveInstanceState();
         listView.setAdapter(dataAdapter);
         listView.onRestoreInstanceState(state);
-
+        // TODO highlight selected challenge
         listView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> listView, View view, int position, long id) {
@@ -306,11 +306,13 @@ public class QuestsActivity extends Fragment {
         }
     }
     public void syncRemLoc() {
-        AsyncTask<Void, String, Void> task4 = new syncAsyncTask();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-            task4.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        else
-            task4.execute();
+        if (isOnline()) {
+            AsyncTask<Void, String, Void> task4 = new syncAsyncTask();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+                task4.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            else
+                task4.execute();
+        }
     }
     private class syncAsyncTask extends AsyncTask<Void, String, Void> {
         @Override
@@ -451,6 +453,7 @@ public class QuestsActivity extends Fragment {
                                     double accuracy = location.getAccuracy();
                                     if (results[0] <= accuracy) {
                                         distance_to_point = "0 ft";
+                                        // TODO create reward script
                                     }
                                     else {
                                         double corrected_results = results[0] - accuracy;
