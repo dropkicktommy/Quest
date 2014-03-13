@@ -22,6 +22,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String TABLE_LOGIN = "login";
     private static final String TABLE_FRIENDS = "friends";
     private static final String TABLE_CHALLENGE = "challenge";
+    private static final String TABLE_HOLDING = "holding";
 
     // Table Column names
     public static final String KEY_ID = "id";
@@ -43,6 +44,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_DISTANCE_FROM = "distance_from";
     public static final String KEY_BEARING_TO = "bearing_to";
     public static final String KEY_PENDING_DELETION = "deletable";
+    public static final String KEY_TAG = "tag";
+    public static final String KEY_CHALLENGED = "challenged";
+    public static final String KEY_TEXT = "text";
+    public static final String KEY_PHOTO = "photo";
+    public static final String KEY_VIDEO = "video";
+
+
     private static DatabaseHandler sInstance = null;
 
     public static DatabaseHandler getInstance(Context context) {
@@ -75,36 +83,50 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String CREATE_LOGIN_TABLE =
                 "CREATE TABLE " + TABLE_LOGIN + "("
-                + KEY_ID + " INTEGER PRIMARY KEY,"
-                + KEY_NAME + " TEXT,"
-                + KEY_EMAIL + " TEXT UNIQUE,"
-                + KEY_UID + " TEXT,"
-                + KEY_CREATED_AT + " TEXT" + ")";
+                        + KEY_ID + " INTEGER PRIMARY KEY,"
+                        + KEY_NAME + " TEXT,"
+                        + KEY_EMAIL + " TEXT UNIQUE,"
+                        + KEY_UID + " TEXT,"
+                        + KEY_CREATED_AT + " TEXT" + ")";
         db.execSQL(CREATE_LOGIN_TABLE);
         String CREATE_FRIEND_TABLE =
                 "CREATE TABLE " + TABLE_FRIENDS + "("
-                + KEY_FID + " INTEGER PRIMARY KEY autoincrement,"
-                + KEY_USERID + " TEXT,"
-                + KEY_NAME + " TEXT,"
-                + KEY_EMAIL + " TEXT,"
-                + KEY_UID + " TEXT" + ")";
+                        + KEY_FID + " INTEGER PRIMARY KEY autoincrement,"
+                        + KEY_USERID + " TEXT,"
+                        + KEY_NAME + " TEXT,"
+                        + KEY_EMAIL + " TEXT,"
+                        + KEY_UID + " TEXT" + ")";
         db.execSQL(CREATE_FRIEND_TABLE);
         String CREATE_CHALLENGE_TABLE =
                 "CREATE TABLE " + TABLE_CHALLENGE + "("
-                + KEY_CID + " INTEGER PRIMARY KEY autoincrement,"
-                + KEY_USERID + " TEXT,"
-                + KEY_CHALLENGE_ID + " TEXT,"
-                + KEY_NAME + " TEXT,"
-                + KEY_CREATED_BY + " TEXT,"
-                + KEY_LONGITUDE + " TEXT,"
-                + KEY_LATITUDE + " TEXT,"
-                + KEY_ACCEPTED_AT + " TEXT,"
-                + KEY_TIME_TO_EXPIRE + " TEXT,"
-                + KEY_EXPIRES_IN + " TEXT,"
-                + KEY_DISTANCE_FROM + " TEXT,"
-                + KEY_BEARING_TO + " TEXT,"
-                + KEY_PENDING_DELETION + " TEXT DEFAULT 'NO'" + ")";
+                        + KEY_CID + " INTEGER PRIMARY KEY autoincrement,"
+                        + KEY_USERID + " TEXT,"
+                        + KEY_CHALLENGE_ID + " TEXT,"
+                        + KEY_NAME + " TEXT,"
+                        + KEY_CREATED_BY + " TEXT,"
+                        + KEY_LONGITUDE + " TEXT,"
+                        + KEY_LATITUDE + " TEXT,"
+                        + KEY_ACCEPTED_AT + " TEXT,"
+                        + KEY_TIME_TO_EXPIRE + " TEXT,"
+                        + KEY_EXPIRES_IN + " TEXT,"
+                        + KEY_DISTANCE_FROM + " TEXT,"
+                        + KEY_BEARING_TO + " TEXT,"
+                        + KEY_PENDING_DELETION + " TEXT DEFAULT 'NO'" + ")";
         db.execSQL(CREATE_CHALLENGE_TABLE);
+        String CREATE_HOLDING_TABLE =
+                "CREATE TABLE " + TABLE_HOLDING + "("
+                        + KEY_USERID + " TEXT,"
+                        + KEY_TAG + " INTEGER PRIMARY KEY autoincrement,"
+                        + KEY_NAME + " TEXT,"
+                        + KEY_CREATED_BY + " TEXT,"
+                        + KEY_CHALLENGED + " TEXT,"
+                        + KEY_TEXT + " TEXT,"
+                        + KEY_PHOTO + " TEXT,"
+                        + KEY_VIDEO + " TEXT,"
+                        + KEY_LONGITUDE + " TEXT,"
+                        + KEY_LATITUDE + " TEXT,"
+                        + KEY_EXPIRES_IN + " TEXT," + ")";
+        db.execSQL(CREATE_HOLDING_TABLE);
     }
 
     // Upgrading database
@@ -252,6 +274,36 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String deletionQuery = "DELETE FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_PENDING_DELETION + " = 'YES'";
         if (db!=null){
             db.execSQL(deletionQuery);
+        }
+    }
+
+    public void holdChallenge(String user_id, String name, String created_by, String challenged, String text, String photo, String video, String longitude, String latitude, String expires_in) {
+        // Add challenges pending creation to local database
+        SQLiteDatabase db = this.getWritableDatabase();
+        String holdingQuery = "INSERT INTO " + TABLE_HOLDING + "("
+                + KEY_USERID + ", "
+                + KEY_TAG + ", "
+                + KEY_NAME + ", "
+                + KEY_CREATED_BY + ", "
+                + KEY_CHALLENGED + ", "
+                + KEY_TEXT + ", "
+                + KEY_PHOTO + ", "
+                + KEY_VIDEO + ", "
+                + KEY_LONGITUDE + ", "
+                + KEY_LATITUDE + ", "
+                + KEY_EXPIRES_IN + ") VALUES ('"
+                + user_id + "', 'create_tag', '"
+                + name + "', '"
+                + created_by + "', '"
+                + challenged + "', '"
+                + text + "', '"
+                + photo + "', '"
+                + video + "', '"
+                + longitude + "', '"
+                + latitude + "', '"
+                + expires_in + "')";
+        if (db!=null){
+            db.execSQL(holdingQuery);
         }
     }
 
