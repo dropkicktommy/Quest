@@ -176,7 +176,7 @@ public class CreateActivity extends Fragment {
 
                 Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                 // TODO allow challenges to be created offline and stored until sync is available
-                if(isOnline() && location != null) {
+                if(location != null) {
                     DatabaseHandler db = DatabaseHandler.getInstance(getActivity());
                     String name = inputChallengeName.getText().toString();
                     String text = inputChallengeText.getText().toString();
@@ -188,11 +188,10 @@ public class CreateActivity extends Fragment {
                         uid = sb.toString();
                     }
                     List<NameValuePair> params = new ArrayList<NameValuePair>();
-                    params.add(new BasicNameValuePair("tag", create_tag));
-                    params.add(new BasicNameValuePair("name", name));
-                    params.add(new BasicNameValuePair("created_by", uid));
+//                    params.add(new BasicNameValuePair("tag", create_tag));
+//                    params.add(new BasicNameValuePair("name", name));
+//                    params.add(new BasicNameValuePair("created_by", uid));
                     String selected = "";
-
                     int cntChoice = listView2.getCount();
                     SparseBooleanArray sparseBooleanArray = listView2.getCheckedItemPositions();
                     for(int i = 0; i < cntChoice; i++){
@@ -201,23 +200,20 @@ public class CreateActivity extends Fragment {
                             DatabaseHandler db8 = DatabaseHandler.getInstance(getActivity());
                             Cursor cursor2 = db8.fetchSingleFriend(selected_friend);
                             selected += (cursor2.getString(cursor2.getColumnIndex(DatabaseHandler.KEY_UID))) + ", ";
-
                         }
                     }
                     selected = selected.substring(0, selected.length() - 2);
-                    params.add(new BasicNameValuePair("challenged", selected));
-
-
-                    if (text != null) {
-                        params.add(new BasicNameValuePair("text", text));
-                    }
-                    else {
-                        params.add(new BasicNameValuePair("text", ""));
-                    }
+//                    params.add(new BasicNameValuePair("challenged", selected));
+//                    if (text != null) {
+//                        params.add(new BasicNameValuePair("text", text));
+//                    }
+//                    else {
+//                        params.add(new BasicNameValuePair("text", ""));
+//                    }
                     if (checkBoxPhoto.isChecked()) {
                         long now = System.currentTimeMillis();
                         photoID = uid + "/" + now;
-                        params.add(new BasicNameValuePair("photo", photoID));
+//                        params.add(new BasicNameValuePair("photo", photoID));
                         new S3PutObjectTask();
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
                             my_task2.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (selectedImage));
@@ -225,61 +221,62 @@ public class CreateActivity extends Fragment {
                             my_task2.execute(selectedImage);
                     }
                     else {
-                        params.add(new BasicNameValuePair("photo", ""));
+                        photoID = "";
+//                        params.add(new BasicNameValuePair("photo", ""));
                     }
+                    String video = "";
                     if (checkBoxVideo.isChecked()) {
-                        params.add(new BasicNameValuePair("video", "true"));
+                        video = "true";
+//                        params.add(new BasicNameValuePair("video", "true"));
                     }
                     else {
-                        params.add(new BasicNameValuePair("video", ""));
+                        video = "";
+//                        params.add(new BasicNameValuePair("video", ""));
                     }
                     String longitude = String.format(
                         "%1$s",
                         location.getLongitude()
                     );
-                    params.add(new BasicNameValuePair("longitude", longitude));
+//                    params.add(new BasicNameValuePair("longitude", longitude));
                     String latitude = String.format(
                         "%1$s",
                         location.getLatitude()
                     );
-                    params.add(new BasicNameValuePair("latitude", latitude));
-                    params.add(new BasicNameValuePair("expires", "24"));
+//                    params.add(new BasicNameValuePair("latitude", latitude));
+                    String expires = "24";
+//                    params.add(new BasicNameValuePair("expires", "24"));
+                    DatabaseHandler db12 = DatabaseHandler.getInstance(getActivity());
+                    db12.holdChallenge(name, uid, selected, text, photoID, video, longitude, latitude, expires);
 
                     // getting JSON Object
-                    JSONObject json = jsonParser.getJSONFromUrl(createURL, params);
-
-                    // check for challenge response
-                    try {
-                        if (json.getString(KEY_SUCCESS) != null) {
-                            createErrorMsg.setText("");
-                            String res = json.getString(KEY_SUCCESS);
-                            if(Integer.parseInt(res) == 1){
-                                createErrorMsg.setText("Quest created Successfully!!!");
-                            }
-                            else{
-                                // Error in creating challenge
-                                createErrorMsg.setText("Error occured creating Quest");
-                            }
-                        }
-                    }
-                    catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+//                    JSONObject json = jsonParser.getJSONFromUrl(createURL, params);
+//
+//                    // check for challenge response
+//                    try {
+//                        if (json.getString(KEY_SUCCESS) != null) {
+//                            createErrorMsg.setText("");
+//                            String res = json.getString(KEY_SUCCESS);
+//                            if(Integer.parseInt(res) == 1){
+//                                createErrorMsg.setText("Quest created Successfully!!!");
+//                            }
+//                            else{
+//                                // Error in creating challenge
+//                                createErrorMsg.setText("Error occured creating Quest");
+//                            }
+//                        }
+//                    }
+//                    catch (JSONException e) {
+//                        e.printStackTrace();
+//                    }
                 }
                 else {
-                    if(location != null) {
-                        Toast.makeText(getActivity(),
-                            "No internet Connection available", Toast.LENGTH_SHORT).show();
-                    }
-                    else {
-                        Toast.makeText(getActivity(),
-                            "No GPS location available", Toast.LENGTH_SHORT).show();
-                    }
+                    Toast.makeText(getActivity(),
+                        "No GPS location available", Toast.LENGTH_SHORT).show();
                 }
             }
         });
         return v;
-    };
+    }
     private class MyLocationListener implements LocationListener {
         public void onLocationChanged(Location location) {
             String message = String.format(

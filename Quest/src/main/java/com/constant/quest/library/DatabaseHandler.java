@@ -277,11 +277,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void holdChallenge(String user_id, String name, String created_by, String challenged, String text, String photo, String video, String longitude, String latitude, String expires_in) {
+    public void holdChallenge(String name, String created_by, String challenged, String text, String photo, String video, String longitude, String latitude, String expires_in) {
         // Add challenges pending creation to local database
         SQLiteDatabase db = this.getWritableDatabase();
         String holdingQuery = "INSERT INTO " + TABLE_HOLDING + "("
-                + KEY_USERID + ", "
                 + KEY_TAG + ", "
                 + KEY_NAME + ", "
                 + KEY_CREATED_BY + ", "
@@ -291,8 +290,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + KEY_VIDEO + ", "
                 + KEY_LONGITUDE + ", "
                 + KEY_LATITUDE + ", "
-                + KEY_EXPIRES_IN + ") VALUES ('"
-                + user_id + "', 'create_tag', '"
+                + KEY_EXPIRES_IN + ") VALUES ('create_tag', '"
                 + name + "', '"
                 + created_by + "', '"
                 + challenged + "', '"
