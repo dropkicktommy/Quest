@@ -399,6 +399,61 @@ public class QuestsActivity extends Fragment {
             catch (JSONException e) {
                 e.printStackTrace();
             }
+            DatabaseHandler db6 = DatabaseHandler.getInstance(getActivity());
+            Cursor cursor6 = db6.getHeldChallenges(uid);
+            int count6 = cursor6.getCount();
+            for (int i = 0;
+                 i < count6;
+                 i++) {
+                    String tag = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_TAG))) + ", ";
+                    String name = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_NAME))) + ", ";
+                    String created_by = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_CREATED_BY))) + ", ";
+                    String challenged = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_CHALLENGED))) + ", ";
+                    String text = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_TEXT))) + ", ";
+                    String photo = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_PHOTO))) + ", ";
+                    String photoURI = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_PHOTO_URI))) + ", ";
+                    String video = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_VIDEO))) + ", ";
+                    String longitude = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_LONGITUDE))) + ", ";
+                    String latitude = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_LATITUDE))) + ", ";
+                    String expires_in = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_EXPIRES_IN))) + ", ";
+                    List<NameValuePair> params6 = new ArrayList<NameValuePair>();
+                    params6.add(new BasicNameValuePair("tag", tag));
+                    params6.add(new BasicNameValuePair("name", name));
+                    params6.add(new BasicNameValuePair("created_by", created_by));
+                    params6.add(new BasicNameValuePair("challenged", challenged));
+                    params6.add(new BasicNameValuePair("text", text));
+                    params6.add(new BasicNameValuePair("photo", photo));
+                    params6.add(new BasicNameValuePair("video", video));
+                    params6.add(new BasicNameValuePair("longitude", longitude));
+                    params6.add(new BasicNameValuePair("latitude", latitude));
+                    params6.add(new BasicNameValuePair("expires", expires_in));
+                    // getting JSON Object
+                    JSONObject json4 = jsonParser.getJSONFromUrl(friendsURL, params6);
+                    // check for challenge response
+                    try {
+                        if (json4.getString(KEY_SUCCESS) != null) {
+                            String res = json4.getString(KEY_SUCCESS);
+                            if(Integer.parseInt(res) == 1){
+                                DatabaseHandler db7 = DatabaseHandler.getInstance(getActivity());
+                                // TODO upload S3 image here:
+                                db7.deleteHeldChallenge(created_by, name);
+                                Toast.makeText(getActivity(),
+                                        "Quest created successfully",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                            else{
+                                // Error in creating challenge
+                                Toast.makeText(getActivity(),
+                                        "Error creating Quest",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    }
+                    catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                 cursor6.moveToNext();
+                 }
             return null;
         }
     }

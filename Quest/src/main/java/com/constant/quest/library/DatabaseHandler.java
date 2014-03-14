@@ -48,6 +48,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_CHALLENGED = "challenged";
     public static final String KEY_TEXT = "text";
     public static final String KEY_PHOTO = "photo";
+    public static final String KEY_PHOTO_URI = "photo_uri";
     public static final String KEY_VIDEO = "video";
 
 
@@ -122,6 +123,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         + KEY_CHALLENGED + " TEXT,"
                         + KEY_TEXT + " TEXT,"
                         + KEY_PHOTO + " TEXT,"
+                        + KEY_PHOTO_URI + " TEXT,"
                         + KEY_VIDEO + " TEXT,"
                         + KEY_LONGITUDE + " TEXT,"
                         + KEY_LATITUDE + " TEXT,"
@@ -277,7 +279,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void holdChallenge(String name, String created_by, String challenged, String text, String photo, String video, String longitude, String latitude, String expires_in) {
+    public void holdChallenge(String name, String created_by, String challenged, String text, String photo, String photoURI, String video, String longitude, String latitude, String expires_in) {
         // Add challenges pending creation to local database
         SQLiteDatabase db = this.getWritableDatabase();
         String holdingQuery = "INSERT INTO " + TABLE_HOLDING + "("
@@ -287,6 +289,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + KEY_CHALLENGED + ", "
                 + KEY_TEXT + ", "
                 + KEY_PHOTO + ", "
+                + KEY_PHOTO_URI + "' "
                 + KEY_VIDEO + ", "
                 + KEY_LONGITUDE + ", "
                 + KEY_LATITUDE + ", "
@@ -296,6 +299,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + challenged + "', '"
                 + text + "', '"
                 + photo + "', '"
+                + photoURI + "', '"
                 + video + "', '"
                 + longitude + "', '"
                 + latitude + "', '"
@@ -305,6 +309,28 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
+
+    public Cursor getHeldChallenges(String user_id) {
+        String challengeQuery = "SELECT * FROM " + TABLE_HOLDING + " WHERE " + KEY_USERID + " IS '" + user_id + "'";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor mCursor = db.rawQuery(challengeQuery, null);
+
+        if (mCursor != null) {
+            mCursor.moveToFirst();
+        }
+
+        return mCursor;
+
+    }
+
+    public void deleteHeldChallenge(String user_id, String name) {
+        // Clear challenges pending deletion from local database
+        SQLiteDatabase db = this.getWritableDatabase();
+        String deletionQuery = "DELETE FROM " + TABLE_HOLDING + " WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_NAME + " = '" + name + "'";
+        if (db!=null){
+            db.execSQL(deletionQuery);
+        }
+    }
     /**
      * Getting user data from database
      * */
