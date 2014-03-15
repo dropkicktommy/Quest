@@ -23,6 +23,7 @@ import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -59,7 +60,7 @@ import java.util.TimeZone;
 
 public class CreateActivity extends Fragment {
 
-    Button btnCreate;
+
     CheckBox checkBoxPhoto;
     CheckBox checkBoxVideo;
     EditText inputChallengeName;
@@ -71,13 +72,7 @@ public class CreateActivity extends Fragment {
 
     protected ConnectivityManager cm;
 
-    // JSON Response node names
-    private static String KEY_SUCCESS = "success";
-    private static String KEY_ERROR = "error";
-    private static String KEY_ERROR_MSG = "error_msg";
-    private static String KEY_CID = "cid";
-    private static String KEY_NAME = "name";
-    private static String create_tag = "create";
+
     static String photoID;
     static String photoURI;
     static String longitude;
@@ -88,10 +83,9 @@ public class CreateActivity extends Fragment {
     static String latExp;
     static String uid = "";
     static String uid2 = "";
-    static String[] names = {""};
+
     Uri selectedImage;
 
-    private static String createURL = "http://caching.elasticbeanstalk.com:80";
 
     private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 1; // in Meters
     private static final long MINIMUM_TIME_BETWEEN_UPDATES = 1000; // in Milliseconds
@@ -102,11 +96,6 @@ public class CreateActivity extends Fragment {
 
     private JSONParser jsonParser;
     private boolean mRunning = false;
-
-    public AsyncTask<Void, String, Void> my_task = new UpdateAsyncTask();
-    public AsyncTask<Uri, Void, S3TaskResult> my_task2 = new S3PutObjectTask();
-
-    private SimpleCursorAdapter dataAdapter;
 
     protected LocationManager locationManager;
 
@@ -203,12 +192,6 @@ public class CreateActivity extends Fragment {
                         long now = System.currentTimeMillis();
                         photoID = uid + "/" + now;
                         photoURI = selectedImage.toString();
-                        // TODO move the line below
-                        new S3PutObjectTask();
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-                            my_task2.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (selectedImage));
-                        else
-                            my_task2.execute(selectedImage);
                     }
                     else {
                         photoID = "";
@@ -216,9 +199,6 @@ public class CreateActivity extends Fragment {
                     String video = "";
                     if (checkBoxVideo.isChecked()) {
                         video = "true";
-                    }
-                    else {
-                        video = "";
                     }
                     String longitude = String.format(
                         "%1$s",
@@ -291,19 +271,6 @@ public class CreateActivity extends Fragment {
         listView2.setAdapter(adapter);
         listView2.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
     }
-
-    /**
-     * Function get Online status
-     **/
-    public boolean isOnline() {
-
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        if (netInfo != null && netInfo.isConnected()) {
-            return true;
-        }
-        return false;
-    }
-
     private Uri outputFileUri;
     private static final int YOUR_SELECT_PICTURE_REQUEST_CODE = 232;
 
@@ -342,9 +309,6 @@ public class CreateActivity extends Fragment {
         chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toArray(new Parcelable[]{}));
 
         startActivityForResult(chooserIntent, YOUR_SELECT_PICTURE_REQUEST_CODE);
-
-
-
     }
 
     @Override
@@ -383,66 +347,8 @@ public class CreateActivity extends Fragment {
             }
         }
     }
-// TODO transfer below to QuestsActivity.synRemLoc
-    private class S3PutObjectTask extends AsyncTask<Uri, Void, S3TaskResult> {
-
-
-        ProgressDialog dialog;
-
-        protected void onPreExecute() {
-            dialog = new ProgressDialog(getActivity());
-            dialog.setMessage(getActivity()
-                    .getString(R.string.uploading));
-            dialog.setCancelable(false);
-            dialog.show();
-        }
-
-        protected S3TaskResult doInBackground(Uri... uris) {
-
-            if (uris == null || uris.length != 1) {
-                return null;
-            }
-
-            // The file location of the image selected.
-            Uri selectedImage = uris[0];
-
-            String[] filePathColumn = { MediaStore.Images.Media.DATA };
-
-            Cursor cursor = getActivity().getContentResolver().query(selectedImage,
-                    filePathColumn, null, null, null);
-            cursor.moveToFirst();
-
-            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-            String filePath = cursor.getString(columnIndex);
-            cursor.close();
-
-            S3TaskResult result = new S3TaskResult();
-
-            // Put the image data into S3.
-            try {
-                // s3Client.createBucket(Constants.getPictureBucket());
-
-                // Content type is determined by file extension.
-                PutObjectRequest por = new PutObjectRequest(
-                        Constants.getPictureBucket(), photoID,
-                        new java.io.File(filePath));
-                s3Client.putObject(por);
-            }
-            catch (Exception exception) {
-            }
-            return result;
-        }
-
-        protected void onPostExecute(S3TaskResult result) {
-            dialog.dismiss();
-        }
-    }
-
-    private class S3TaskResult {
-    }
-
     public void updateLocation() {
-        new UpdateAsyncTask();
+        AsyncTask<Void, String, Void> my_task = new UpdateAsyncTask();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
             my_task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         else
@@ -520,6 +426,7 @@ public class CreateActivity extends Fragment {
                     }
 
                     catch (InterruptedException e) {
+
                     }
                     publishProgress();
                 }

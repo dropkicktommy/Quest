@@ -1,6 +1,7 @@
 package com.constant.quest;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,10 +18,12 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.Display;
@@ -38,6 +41,9 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.constant.quest.library.DatabaseHandler;
 import com.constant.quest.library.JSONParser;
 import com.constant.quest.library.UserFunctions;
@@ -80,10 +86,13 @@ public class QuestsActivity extends Fragment {
     static String visibleExp;
     static String visibleDist;
     static String visibleBear;
+    static String photo;
     float visBear;
     final float[] results= new float[3];
     float[] mGravity;
     float[] mGeomagnetic;
+    Uri selectedImage;
+
 
     Bitmap bmpOriginal;
     Bitmap bmpOriginal2;
@@ -91,6 +100,10 @@ public class QuestsActivity extends Fragment {
     SimpleCursorAdapter dataAdapter;
 
     private static String friendsURL = "http://caching.elasticbeanstalk.com:80";
+    private AmazonS3Client s3Client = new AmazonS3Client(
+            new BasicAWSCredentials(Constants.ACCESS_KEY_ID,
+                    Constants.SECRET_KEY));
+
 
     private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 1; // in Meters
     private static final long MINIMUM_TIME_BETWEEN_UPDATES = 1000; // in Milliseconds
@@ -410,8 +423,9 @@ public class QuestsActivity extends Fragment {
                     String created_by = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_CREATED_BY))) + ", ";
                     String challenged = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_CHALLENGED))) + ", ";
                     String text = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_TEXT))) + ", ";
-                    String photo = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_PHOTO))) + ", ";
+                    photo = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_PHOTO))) + ", ";
                     String photoURI = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_PHOTO_URI))) + ", ";
+                    selectedImage = Uri.parse(photoURI);
                     String video = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_VIDEO))) + ", ";
                     String longitude = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_LONGITUDE))) + ", ";
                     String latitude = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_LATITUDE))) + ", ";
@@ -427,6 +441,7 @@ public class QuestsActivity extends Fragment {
                     params6.add(new BasicNameValuePair("longitude", longitude));
                     params6.add(new BasicNameValuePair("latitude", latitude));
                     params6.add(new BasicNameValuePair("expires", expires_in));
+                    startS3upload();
                     // getting JSON Object
                     JSONObject json4 = jsonParser.getJSONFromUrl(friendsURL, params6);
                     // check for challenge response
@@ -435,7 +450,6 @@ public class QuestsActivity extends Fragment {
                             String res = json4.getString(KEY_SUCCESS);
                             if(Integer.parseInt(res) == 1){
                                 DatabaseHandler db7 = DatabaseHandler.getInstance(getActivity());
-                                // TODO upload S3 image here:
                                 db7.deleteHeldChallenge(created_by, name);
                                 Toast.makeText(getActivity(),
                                         "Quest created successfully",
@@ -457,6 +471,7 @@ public class QuestsActivity extends Fragment {
             return null;
         }
     }
+
     public void startUpdateListView() {
         AsyncTask<Void, String, Void> task3 = new UpdateAsyncTask();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
@@ -656,6 +671,70 @@ public class QuestsActivity extends Fragment {
             }
         }
     };
+    public void startS3upload() {
+        AsyncTask<Uri, Void, S3TaskResult> task6 = new S3PutObjectTask();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+            task6.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (selectedImage));
+        else
+            task6.execute(selectedImage);
+    }
+    private class S3PutObjectTask extends AsyncTask<Uri, Void, S3TaskResult> {
+
+
+        ProgressDialog dialog;
+
+        protected void onPreExecute() {
+            dialog = new ProgressDialog(getActivity());
+            dialog.setMessage(getActivity()
+                    .getString(R.string.uploading));
+            dialog.setCancelable(false);
+            dialog.show();
+        }
+
+        protected S3TaskResult doInBackground(Uri... uris) {
+
+            if (uris == null || uris.length != 1) {
+                return null;
+            }
+
+            // The file location of the image selected.
+            Uri selectedImage = uris[0];
+
+            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+
+            Cursor cursor = getActivity().getContentResolver().query(selectedImage,
+                    filePathColumn, null, null, null);
+            cursor.moveToFirst();
+
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String filePath = cursor.getString(columnIndex);
+            cursor.close();
+
+            S3TaskResult result = new S3TaskResult();
+
+            // Put the image data into S3.
+            try {
+                // s3Client.createBucket(Constants.getPictureBucket());
+
+                // Content type is determined by file extension.
+                PutObjectRequest por = new PutObjectRequest(
+                        Constants.getPictureBucket(), photo,
+                        new java.io.File(filePath));
+                s3Client.putObject(por);
+            }
+            catch (Exception exception) {
+            }
+            return result;
+        }
+
+        protected void onPostExecute(S3TaskResult result) {
+            dialog.dismiss();
+        }
+    }
+
+    private class S3TaskResult {
+    }
+
     @Override
     public void onResume() {
         super.onResume();
