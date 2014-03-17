@@ -44,6 +44,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_DISTANCE_FROM = "distance_from";
     public static final String KEY_BEARING_TO = "bearing_to";
     public static final String KEY_PENDING_DELETION = "deletable";
+    public static final String KEY_REWARD_RETRIEVED = "reward_retrieved";
     public static final String KEY_TAG = "tag";
     public static final String KEY_CHALLENGED = "challenged";
     public static final String KEY_TEXT = "text";
@@ -105,6 +106,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         + KEY_CHALLENGE_ID + " TEXT,"
                         + KEY_NAME + " TEXT,"
                         + KEY_CREATED_BY + " TEXT,"
+                        + KEY_PHOTO + " TEXT DEFAULT 'NONE',"
                         + KEY_LONGITUDE + " TEXT,"
                         + KEY_LATITUDE + " TEXT,"
                         + KEY_ACCEPTED_AT + " TEXT,"
@@ -112,6 +114,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         + KEY_EXPIRES_IN + " TEXT,"
                         + KEY_DISTANCE_FROM + " TEXT,"
                         + KEY_BEARING_TO + " TEXT,"
+                        + KEY_REWARD_RETRIEVED + " TEXT DEFAULT 'NO',"
                         + KEY_PENDING_DELETION + " TEXT DEFAULT 'NO'" + ")";
         db.execSQL(CREATE_CHALLENGE_TABLE);
         String CREATE_HOLDING_TABLE =
@@ -202,13 +205,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * Syncing challenge details between databases
      * */
     public void updateChallenges(String values, String user_id) {
-                // Update current challenge list from local database
-//        String challengeRemoveQuery = "DELETE FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " = '" + user_id + "'";
-//        SQLiteDatabase db = this.getWritableDatabase();
-//        if (db!=null){
-//            db.execSQL(challengeRemoveQuery);
-//        }
-        String challengeUpdateQuery = "INSERT INTO " + TABLE_CHALLENGE + "(" + KEY_USERID + ", " + KEY_CHALLENGE_ID +", " + KEY_NAME + ", " + KEY_CREATED_BY + ", " + KEY_LONGITUDE + ", " + KEY_LATITUDE + ", " + KEY_ACCEPTED_AT + "," + KEY_TIME_TO_EXPIRE + ") VALUES" + values;
+        // Update current challenge list from local database
+        String challengeUpdateQuery = "INSERT INTO " + TABLE_CHALLENGE + "(" + KEY_USERID + ", " + KEY_CHALLENGE_ID +", " + KEY_NAME + ", " + KEY_CREATED_BY + ", " + KEY_PHOTO + "," + KEY_LONGITUDE + ", " + KEY_LATITUDE + ", " + KEY_ACCEPTED_AT + "," + KEY_TIME_TO_EXPIRE + ") VALUES" + values;
         SQLiteDatabase db2 = this.getWritableDatabase();
         if (db2!=null){
             db2.execSQL(challengeUpdateQuery);
@@ -451,6 +449,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         return mCursor;
 
+    }
+
+    public Cursor retrieveReward(String user) {
+
+        String rewardQuery = "SELECT " + KEY_PHOTO + " FROM " + TABLE_CHALLENGE + " WHERE " + KEY_USERID + " IS '" + user + "' AND " + KEY_REWARD_RETRIEVED + " IS 'NO'";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor mCursor = db.rawQuery(rewardQuery, null);
+
+        if (mCursor != null) {
+            mCursor.moveToFirst();
+        }
+
+        return mCursor;
     }
 
 }

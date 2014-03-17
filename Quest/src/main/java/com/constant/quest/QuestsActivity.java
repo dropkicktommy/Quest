@@ -44,6 +44,7 @@ import android.widget.Toast;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.constant.quest.library.DatabaseHandler;
 import com.constant.quest.library.JSONParser;
 import com.constant.quest.library.UserFunctions;
@@ -227,7 +228,7 @@ public class QuestsActivity extends Fragment {
         Parcelable state = listView.onSaveInstanceState();
         listView.setAdapter(dataAdapter);
         listView.onRestoreInstanceState(state);
-        // TODO highlight selected challenge
+        // TODO - highlight selected challenge
         listView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> listView, View view, int position, long id) {
@@ -350,11 +351,9 @@ public class QuestsActivity extends Fragment {
                 selected_id += (cursor.getString(cursor.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID))) + ", ";
                 cursor.moveToNext();
             }
-
             if (selected_id.startsWith("5")) {
                 selected_id = selected_id.substring(0,selected_id.length()-2);
             }
-
             List<NameValuePair> params2 = new ArrayList<NameValuePair>();
             params2.add(new BasicNameValuePair("tag", "syncAdd_challenges"));
             params2.add(new BasicNameValuePair("user", uid));
@@ -376,6 +375,27 @@ public class QuestsActivity extends Fragment {
             catch (JSONException e) {
                 e.printStackTrace();
             }
+            // Retrieve new rewards from server and store locally
+            DatabaseHandler db12 = DatabaseHandler.getInstance(getActivity());
+            Cursor cursor12 = db12.retrieveReward(uid);
+            int count12 = cursor12.getCount();
+            for (int i = 0;
+                 i < count12;
+                 i++) {
+                String photo_URL = (cursor12.getString(cursor12.getColumnIndex(DatabaseHandler.KEY_PHOTO))) + ", ";
+                try {
+                    // Content type is determined by file extension.
+                    GetObjectRequest gor = new GetObjectRequest(
+                            Constants.getPictureBucket(), photo_URL,
+                            null);
+                    s3Client.getObject(gor);
+                    // TODO - encrypt and store the retrieved photo
+                    cursor12.moveToNext();
+                }
+                catch (Exception exception) {
+                }
+            }
+            // Retrieve local list of challenges to be removed
             String deletion_id = "";
             DatabaseHandler db3 = DatabaseHandler.getInstance(getActivity());
             Cursor cursor2 = db3.getChallengeIDsForDeletion(uid);
@@ -386,12 +406,9 @@ public class QuestsActivity extends Fragment {
                 deletion_id += (cursor2.getString(cursor2.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID))) + ", ";
                 cursor2.moveToNext();
             }
-
             if (deletion_id.startsWith("5")) {
                 deletion_id = deletion_id.substring(0,deletion_id.length()-2);
             }
-
-
             List<NameValuePair> params3 = new ArrayList<NameValuePair>();
             params3.add(new BasicNameValuePair("tag", "syncRem_challenges"));
             params3.add(new BasicNameValuePair("user", uid));
@@ -412,6 +429,7 @@ public class QuestsActivity extends Fragment {
             catch (JSONException e) {
                 e.printStackTrace();
             }
+            // Retrieve any newly created challenges
             DatabaseHandler db6 = DatabaseHandler.getInstance(getActivity());
             Cursor cursor6 = db6.getHeldChallenges(uid);
             int count6 = cursor6.getCount();
@@ -444,12 +462,13 @@ public class QuestsActivity extends Fragment {
                     startS3upload();
                     // getting JSON Object
                     JSONObject json4 = jsonParser.getJSONFromUrl(friendsURL, params6);
-                    // check for challenge response
+                    // Send the new challenge to the server
                     try {
                         if (json4.getString(KEY_SUCCESS) != null) {
                             String res = json4.getString(KEY_SUCCESS);
                             if(Integer.parseInt(res) == 1){
                                 DatabaseHandler db7 = DatabaseHandler.getInstance(getActivity());
+                                // Delete the held challenge locally if the transfer was successful
                                 db7.deleteHeldChallenge(created_by, name);
                                 Toast.makeText(getActivity(),
                                         "Quest created successfully",
@@ -523,7 +542,7 @@ public class QuestsActivity extends Fragment {
                                     double accuracy = location.getAccuracy();
                                     if (results[0] <= accuracy) {
                                         distance_to_point = "0 ft";
-                                        // TODO create reward script
+                                        reward(uid, challenge_id);
                                     }
                                     else {
                                         double corrected_results = results[0] - accuracy;
@@ -734,6 +753,38 @@ public class QuestsActivity extends Fragment {
 
     private class S3TaskResult {
     }
+
+    public void reward(final String user, final String challenge_id) {
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                getActivity());
+        // set complete.xml to alert dialog builder
+        LayoutInflater li = LayoutInflater.from(getActivity());
+        View questComplete = li.inflate(R.layout.complete, null);
+        alertDialogBuilder.setView(questComplete);
+
+        // set dialog message
+        alertDialogBuilder
+            .setCancelable(true)
+            .setPositiveButton("Yes",
+            new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // TODO - add provisions for text retrieval here and in API
+                    // TODO - decrypt and display photo or video reward
+                    dialog.cancel();
+                }
+            }
+            )
+            .setNegativeButton("No",
+            new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                }
+            }
+            );
+        }
+
+
 
     @Override
     public void onResume() {
