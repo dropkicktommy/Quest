@@ -130,7 +130,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         + KEY_VIDEO + " TEXT,"
                         + KEY_LONGITUDE + " TEXT,"
                         + KEY_LATITUDE + " TEXT,"
-                        + KEY_EXPIRES_IN + " TEXT," + ")";
+                        + KEY_EXPIRES_IN + " TEXT" + ")";
         db.execSQL(CREATE_HOLDING_TABLE);
     }
 
@@ -206,7 +206,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * */
     public void updateChallenges(String values, String user_id) {
         // Update current challenge list from local database
-        String challengeUpdateQuery = "INSERT INTO " + TABLE_CHALLENGE + "(" + KEY_USERID + ", " + KEY_CHALLENGE_ID +", " + KEY_NAME + ", " + KEY_CREATED_BY + ", " + KEY_PHOTO + "," + KEY_LONGITUDE + ", " + KEY_LATITUDE + ", " + KEY_ACCEPTED_AT + "," + KEY_TIME_TO_EXPIRE + ") VALUES" + values;
+        String challengeUpdateQuery = "INSERT INTO " + TABLE_CHALLENGE + "(" + KEY_USERID + ", " + KEY_CHALLENGE_ID +", " + KEY_NAME + ", " + KEY_CREATED_BY + ", " + KEY_PHOTO + ", " + KEY_LONGITUDE + ", " + KEY_LATITUDE + ", " + KEY_ACCEPTED_AT + "," + KEY_TIME_TO_EXPIRE + ") VALUES" + values;
         SQLiteDatabase db2 = this.getWritableDatabase();
         if (db2!=null){
             db2.execSQL(challengeUpdateQuery);
