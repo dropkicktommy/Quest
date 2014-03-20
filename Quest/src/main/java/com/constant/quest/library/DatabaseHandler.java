@@ -119,8 +119,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL(CREATE_CHALLENGE_TABLE);
         String CREATE_HOLDING_TABLE =
                 "CREATE TABLE " + TABLE_HOLDING + "("
-                        + KEY_USERID + " TEXT,"
-                        + KEY_TAG + " INTEGER PRIMARY KEY autoincrement,"
+                        + KEY_TAG + " TEXT,"
                         + KEY_NAME + " TEXT,"
                         + KEY_CREATED_BY + " TEXT,"
                         + KEY_CHALLENGED + " TEXT,"
@@ -287,11 +286,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + KEY_CHALLENGED + ", "
                 + KEY_TEXT + ", "
                 + KEY_PHOTO + ", "
-                + KEY_PHOTO_URI + "' "
+                + KEY_PHOTO_URI + ", "
                 + KEY_VIDEO + ", "
                 + KEY_LONGITUDE + ", "
                 + KEY_LATITUDE + ", "
-                + KEY_EXPIRES_IN + ") VALUES ('create_tag', '"
+                + KEY_EXPIRES_IN + ") VALUES ('create', '"
                 + name + "', '"
                 + created_by + "', '"
                 + challenged + "', '"
@@ -309,7 +308,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 
     public Cursor getHeldChallenges(String user_id) {
-        String challengeQuery = "SELECT * FROM " + TABLE_HOLDING + " WHERE " + KEY_USERID + " IS '" + user_id + "'";
+        String challengeQuery = "SELECT * FROM " + TABLE_HOLDING + " WHERE " + KEY_CREATED_BY + " IS '" + user_id + "'";
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor mCursor = db.rawQuery(challengeQuery, null);
 
@@ -324,7 +323,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void deleteHeldChallenge(String user_id, String name) {
         // Clear challenges pending deletion from local database
         SQLiteDatabase db = this.getWritableDatabase();
-        String deletionQuery = "DELETE FROM " + TABLE_HOLDING + " WHERE " + KEY_USERID + " = '" + user_id + "' AND " + KEY_NAME + " = '" + name + "'";
+        String deletionQuery = "DELETE FROM " + TABLE_HOLDING + " WHERE " + KEY_CREATED_BY + " = '" + user_id + "' AND " + KEY_NAME + " = '" + name + "'";
         if (db!=null){
             db.execSQL(deletionQuery);
         }

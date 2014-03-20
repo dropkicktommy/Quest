@@ -168,6 +168,7 @@ public class CreateActivity extends Fragment {
                 if(location != null) {
                     DatabaseHandler db = DatabaseHandler.getInstance(getActivity());
                     String name = inputChallengeName.getText().toString();
+                    // TODO make provisions for special characters (   '   ) in text variable
                     String text = inputChallengeText.getText().toString();
                     StringBuilder sb = new StringBuilder(); {
                         String UID = db.getUID().toString();

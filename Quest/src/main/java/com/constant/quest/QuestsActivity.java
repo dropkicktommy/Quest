@@ -22,6 +22,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
@@ -331,6 +332,7 @@ public class QuestsActivity extends Fragment {
     private class syncAsyncTask extends AsyncTask<Void, String, Void> {
         @Override
         protected Void doInBackground(Void... params) {
+            Looper.prepare();
             DatabaseHandler db = DatabaseHandler.getInstance(getActivity());
             // DatabaseHandler db = new DatabaseHandler(getApplicationContext());
             StringBuilder sb = new StringBuilder(); {
@@ -436,18 +438,18 @@ public class QuestsActivity extends Fragment {
             for (int i = 0;
                  i < count6;
                  i++) {
-                    String tag = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_TAG))) + ", ";
-                    String name = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_NAME))) + ", ";
-                    String created_by = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_CREATED_BY))) + ", ";
-                    String challenged = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_CHALLENGED))) + ", ";
-                    String text = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_TEXT))) + ", ";
-                    photo = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_PHOTO))) + ", ";
-                    String photoURI = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_PHOTO_URI))) + ", ";
+                    String tag = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_TAG)));
+                    String name = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_NAME)));
+                    String created_by = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_CREATED_BY)));
+                    String challenged = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_CHALLENGED)));
+                    String text = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_TEXT)));
+                    photo = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_PHOTO)));
+                    String photoURI = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_PHOTO_URI)));
                     selectedImage = Uri.parse(photoURI);
-                    String video = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_VIDEO))) + ", ";
-                    String longitude = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_LONGITUDE))) + ", ";
-                    String latitude = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_LATITUDE))) + ", ";
-                    String expires_in = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_EXPIRES_IN))) + ", ";
+                    String video = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_VIDEO)));
+                    String longitude = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_LONGITUDE)));
+                    String latitude = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_LATITUDE)));
+                    String expires_in = (cursor6.getString(cursor6.getColumnIndex(DatabaseHandler.KEY_EXPIRES_IN)));
                     List<NameValuePair> params6 = new ArrayList<NameValuePair>();
                     params6.add(new BasicNameValuePair("tag", tag));
                     params6.add(new BasicNameValuePair("name", name));
@@ -459,7 +461,9 @@ public class QuestsActivity extends Fragment {
                     params6.add(new BasicNameValuePair("longitude", longitude));
                     params6.add(new BasicNameValuePair("latitude", latitude));
                     params6.add(new BasicNameValuePair("expires", expires_in));
-                    startS3upload();
+                    if (!photo .equals("")) {
+                        startS3upload();
+                    }
                     // getting JSON Object
                     JSONObject json4 = jsonParser.getJSONFromUrl(friendsURL, params6);
                     // Send the new challenge to the server
@@ -703,6 +707,7 @@ public class QuestsActivity extends Fragment {
         ProgressDialog dialog;
 
         protected void onPreExecute() {
+            Looper.prepare();
             dialog = new ProgressDialog(getActivity());
             dialog.setMessage(getActivity()
                     .getString(R.string.uploading));
