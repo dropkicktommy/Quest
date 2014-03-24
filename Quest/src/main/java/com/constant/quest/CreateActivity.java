@@ -37,6 +37,7 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -85,8 +86,9 @@ public class CreateActivity extends Fragment {
     static String uid2 = "";
 
     Uri selectedImage;
+    String mCurrentPhotoPath;
 
-
+    static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 1; // in Meters
     private static final long MINIMUM_TIME_BETWEEN_UPDATES = 1000; // in Milliseconds
 
@@ -133,7 +135,7 @@ public class CreateActivity extends Fragment {
             {
                 if (checkBoxPhoto.isChecked())
                 {
-                    openImageIntent();
+                    dispatchTakePictureIntent();
                 }
             }
         });
@@ -275,79 +277,122 @@ public class CreateActivity extends Fragment {
     private Uri outputFileUri;
     private static final int YOUR_SELECT_PICTURE_REQUEST_CODE = 232;
 
-    private void openImageIntent() {
+//    private void openImageIntent() {
+//
+//    // Determine Uri of camera image to save.
+//        final File root = new File(Environment.getExternalStorageDirectory() + File.separator + "MyDir" + File.separator);
+//        root.mkdirs();
+//        final String fname = System.currentTimeMillis()+"";
+//        final File sdImageMainDirectory = new File(root, fname);
+//        outputFileUri = Uri.fromFile(sdImageMainDirectory);
+//
+//        // Camera.
+//        final List<Intent> cameraIntents = new ArrayList<Intent>();
+//        final Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        final PackageManager packageManager = getActivity().getPackageManager();
+//        final List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
+//        for(ResolveInfo res : listCam) {
+//            final String packageName = res.activityInfo.packageName;
+//            final Intent intent = new Intent(captureIntent);
+//            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+//            intent.setPackage(packageName);
+//            intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
+//            cameraIntents.add(intent);
+//        }
+//
+//        // Filesystem.
+//        final Intent galleryIntent = new Intent();
+//        galleryIntent.setType("image/*");
+//        galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+//
+//        // Chooser of filesystem options.
+//        final Intent chooserIntent = Intent.createChooser(galleryIntent, "Select Source");
+//
+//        // Add the camera options.
+//        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toArray(new Parcelable[]{}));
+//
+//        startActivityForResult(chooserIntent, YOUR_SELECT_PICTURE_REQUEST_CODE);
+//    }
+//
+//    @Override
+//    public void onActivityResult(int requestCode, int resultCode, Intent data)
+//    {
+//        if(resultCode == Activity.RESULT_OK)
+//        {
+//            if(requestCode == YOUR_SELECT_PICTURE_REQUEST_CODE)
+//            {
+//                final boolean isCamera;
+//                if(data == null)
+//                {
+//                    isCamera = true;
+//                }
+//                else
+//                {
+//                    final String action = data.getAction();
+//                    if(action == null)
+//                    {
+//                        isCamera = false;
+//                    }
+//                    else
+//                    {
+//                        isCamera = action.equals(MediaStore.ACTION_IMAGE_CAPTURE);
+//                    }
+//                }
+//
+//                if(isCamera)
+//                {
+//                    selectedImage = outputFileUri;
+//                }
+//                else
+//                {
+//                    selectedImage = data == null ? null : data.getData();
+//                }
+//            }
+//        }
+//    }
+//
 
-    // Determine Uri of camera image to save.
-        final File root = new File(Environment.getExternalStorageDirectory() + File.separator + "MyDir" + File.separator);
-        root.mkdirs();
-        final String fname = System.currentTimeMillis()+"";
-        final File sdImageMainDirectory = new File(root, fname);
-        outputFileUri = Uri.fromFile(sdImageMainDirectory);
 
-        // Camera.
-        final List<Intent> cameraIntents = new ArrayList<Intent>();
-        final Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        final PackageManager packageManager = getActivity().getPackageManager();
-        final List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
-        for(ResolveInfo res : listCam) {
-            final String packageName = res.activityInfo.packageName;
-            final Intent intent = new Intent(captureIntent);
-            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-            intent.setPackage(packageName);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
-            cameraIntents.add(intent);
-        }
+    private File createImageFile() throws java.io.IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
 
-        // Filesystem.
-        final Intent galleryIntent = new Intent();
-        galleryIntent.setType("image/*");
-        galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
-
-        // Chooser of filesystem options.
-        final Intent chooserIntent = Intent.createChooser(galleryIntent, "Select Source");
-
-        // Add the camera options.
-        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toArray(new Parcelable[]{}));
-
-        startActivityForResult(chooserIntent, YOUR_SELECT_PICTURE_REQUEST_CODE);
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+        return image;
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        if(resultCode == Activity.RESULT_OK)
-        {
-            if(requestCode == YOUR_SELECT_PICTURE_REQUEST_CODE)
-            {
-                final boolean isCamera;
-                if(data == null)
-                {
-                    isCamera = true;
-                }
-                else
-                {
-                    final String action = data.getAction();
-                    if(action == null)
-                    {
-                        isCamera = false;
-                    }
-                    else
-                    {
-                        isCamera = action.equals(MediaStore.ACTION_IMAGE_CAPTURE);
-                    }
-                }
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (java.io.IOException ex) {
+                // Error occurred while creating the File
 
-                if(isCamera)
-                {
-                    selectedImage = outputFileUri;
-                }
-                else
-                {
-                    selectedImage = data == null ? null : data.getData();
-                }
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                selectedImage = Uri.fromFile(photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                        Uri.fromFile(photoFile));
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
+
     }
+
+
     public void updateLocation() {
         AsyncTask<Void, String, Void> my_task = new UpdateAsyncTask();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
