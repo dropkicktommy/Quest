@@ -742,49 +742,13 @@ public class QuestsActivity extends Fragment {
 
         protected S3TaskResult doInBackground(Uri... uris) {
 
-            if (uris == null || uris.length != 1) {
-                return null;
-            }
-            // The file location of the image selected.
-            Uri selectedImage2 = uris[0];
-            ContentResolver resolver = getActivity().getContentResolver();
-            String fileSizeColumn[] = {OpenableColumns.SIZE};
-
-            Cursor cursor = resolver.query(selectedImage2,
-                    fileSizeColumn, null, null, null);
-
-            cursor.moveToFirst();
-
-            int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
-            // If the size is unknown, the value stored is null. But since an int can't be
-            // null in java, the behavior is implementation-specific, which is just a fancy
-            // term for "unpredictable". So as a rule, check if it's null before assigning
-            // to an int. This will happen often: The storage API allows for remote
-            // files, whose size might not be locally known.
-            String size = null;
-            if (!cursor.isNull(sizeIndex)) {
-                // Technically the column stores an int, but cursor.getString will do the
-                // conversion automatically.
-                size = cursor.getString(sizeIndex);
-            }
-            cursor.close();
-
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentType(resolver.getType(selectedImage));
-            if(size != null){
-                metadata.setContentLength(Long.parseLong(size));
-            }
-
-
             S3TaskResult result = new S3TaskResult();
             // Put the image data into S3.
             try {
-                // s3Client.createBucket(Constants.getPictureBucket());
-
                 // Content type is determined by file extension.
                 PutObjectRequest por = new PutObjectRequest(
                         Constants.getPictureBucket(), photo,
-                        new java.io.File(filePath));
+                        new java.io.File(selectedImage.getPath()));
                 s3Client.putObject(por);
             }
             catch (Exception exception) {
