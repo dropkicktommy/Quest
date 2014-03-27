@@ -22,11 +22,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Looper;
+import android.os.Environment;
 import android.os.Parcelable;
-import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Surface;
@@ -35,20 +33,18 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.content.ContentResolver;
-import android.provider.OpenableColumns;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
+
+import com.amazonaws.services.s3.model.S3Object;
 import com.constant.quest.library.DatabaseHandler;
 import com.constant.quest.library.JSONParser;
 import com.constant.quest.library.UserFunctions;
@@ -58,13 +54,15 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -94,6 +92,8 @@ public class QuestsActivity extends Fragment {
     static String photo;
     static String photoURI;
     static String filePath;
+    String mCurrentPhotoPath;
+
 
     static int s3uploadComplete = 0;
     float visBear;
@@ -101,6 +101,10 @@ public class QuestsActivity extends Fragment {
     float[] mGravity;
     float[] mGeomagnetic;
     Uri selectedImage;
+    Uri newImageURI;
+    String newImage;
+
+
 
 
     Bitmap bmpOriginal;
@@ -376,7 +380,7 @@ public class QuestsActivity extends Fragment {
                         // Update list of challenges in SQLite Database
                         DatabaseHandler db2 = DatabaseHandler.getInstance(getActivity());
                         JSONObject json_listChallenges = json2.getJSONObject("challenge_list");
-                        db2.updateChallenges(json_listChallenges.getString("values"), uid);
+                        db2.updateChallenges(json_listChallenges.getString("values"));
                     }
                 }
             }
@@ -390,18 +394,42 @@ public class QuestsActivity extends Fragment {
             for (int i = 0;
                  i < count12;
                  i++) {
+                String challengeID = (cursor12.getString(cursor12.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID))) + ", ";
                 String photo_URL = (cursor12.getString(cursor12.getColumnIndex(DatabaseHandler.KEY_PHOTO))) + ", ";
+                File photoFile = null;
                 try {
-                    // Content type is determined by file extension.
-                    GetObjectRequest gor = new GetObjectRequest(
-                            Constants.getPictureBucket(), photo_URL,
-                            null);
-                    s3Client.getObject(gor);
-                    // TODO - encrypt and store the retrieved photo
-                    cursor12.moveToNext();
+                    photoFile = createImageFile();
+                } catch (java.io.IOException ex) {
+                    // Error occurred while creating the File
                 }
-                catch (Exception exception) {
+                // Continue only if the File was successfully created
+                if (photoFile != null) {
+                    newImageURI = Uri.fromFile(photoFile);
+                    newImage = newImageURI.toString();
+                    try {
+                        // Content type is determined by file extension.
+                        GetObjectRequest gor = new GetObjectRequest(
+                                Constants.getPictureBucket(), photo_URL);
+                        S3Object object = s3Client.getObject(gor);
+                        InputStream in = object.getObjectContent();
+                        byte[] buf = new byte[1024];
+                        OutputStream out = new FileOutputStream(photoFile);
+                        while ((count = in.read(buf)) != -1) {
+                            if (Thread.interrupted()) {
+                                throw new InterruptedException();
+                            }
+                            out.write(buf, 0, count);
+                        }
+                        out.close();
+                        in.close();
+                    }
+                    catch (Exception exception) {
+                    }
                 }
+                // TODO input reward file location into local database
+                DatabaseHandler db13 = DatabaseHandler.getInstance(getActivity());
+                db13.updateReward(uid, challengeID, newImage);
+                cursor12.moveToNext();
             }
             // Retrieve local list of challenges to be removed
             String deletion_id = "";
@@ -794,6 +822,23 @@ public class QuestsActivity extends Fragment {
             }
             );
         }
+
+    private File createImageFile() throws java.io.IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+        return image;
+    }
 
 
 
