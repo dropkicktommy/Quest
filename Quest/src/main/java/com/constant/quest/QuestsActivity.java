@@ -19,6 +19,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import java.net.*;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -279,8 +280,20 @@ public class QuestsActivity extends Fragment {
                             .setNegativeButton("Vehemently Reject",
                                     new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int id) {
-                                            DatabaseHandler db9 = DatabaseHandler.getInstance(getActivity());
-                                            db9.flagChallenges(uid, selectChallenge, "YES");
+                                            DatabaseHandler db33 = DatabaseHandler.getInstance(getActivity());
+                                            db33.flagChallenges(uid, selectChallenge, "YES");
+                                            DatabaseHandler db3 = DatabaseHandler.getInstance(getActivity());
+                                            Cursor cursor52 = db3.wipeReward(uid, selectChallenge);
+                                            String photoID = (cursor52.getString(cursor52.getColumnIndex(DatabaseHandler.KEY_PHOTO_URI)));
+                                            File fdelete = new File(photoID);
+                                            if (fdelete.exists()) {
+                                                if (fdelete.delete()) {
+                                                    System.out.println("file Deleted :" + photoID);
+                                                } else {
+                                                    System.out.println("file not Deleted :" + photoID);
+                                                }
+                                            }
+//                                            getActivity().getContentResolver().delete(Uri.parse(photoID), null, null);
                                             dialog.cancel();
                                         }
                                     }
@@ -293,8 +306,20 @@ public class QuestsActivity extends Fragment {
                             .setPositiveButton("Remove",
                                     new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int id) {
+                                            DatabaseHandler db33 = DatabaseHandler.getInstance(getActivity());
+                                            db33.flagChallenges(uid, selectChallenge, "YES");
                                             DatabaseHandler db3 = DatabaseHandler.getInstance(getActivity());
-                                            db3.flagChallenges(uid, selectChallenge, "YES");
+                                            Cursor cursor52 = db3.wipeReward(uid, selectChallenge);
+                                            String photoID = (cursor52.getString(cursor52.getColumnIndex(DatabaseHandler.KEY_PHOTO_URI)));
+                                            File fdelete = new File(photoID);
+                                            if (fdelete.exists()) {
+                                                if (fdelete.delete()) {
+                                                    System.out.println("file Deleted :" + photoID);
+                                                } else {
+                                                    System.out.println("file not Deleted :" + photoID);
+                                                }
+                                            }
+//                                            getActivity().getContentResolver().delete(Uri.parse(photoID), null, null);
                                             dialog.cancel();
                                         }
                                     }
@@ -394,8 +419,8 @@ public class QuestsActivity extends Fragment {
             for (int i = 0;
                  i < count12;
                  i++) {
-                String challengeID = (cursor12.getString(cursor12.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID))) + ", ";
-                String photo_URL = (cursor12.getString(cursor12.getColumnIndex(DatabaseHandler.KEY_PHOTO))) + ", ";
+                String challengeID = (cursor12.getString(cursor12.getColumnIndex(DatabaseHandler.KEY_CHALLENGE_ID)));
+                String photo_URL = (cursor12.getString(cursor12.getColumnIndex(DatabaseHandler.KEY_PHOTO)));
                 File photoFile = null;
                 try {
                     photoFile = createImageFile();

@@ -5,8 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.provider.MediaStore;
 import android.util.Log;
 
+import java.io.File;
 import java.util.HashMap;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
@@ -107,6 +109,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         + KEY_NAME + " TEXT,"
                         + KEY_CREATED_BY + " TEXT,"
                         + KEY_PHOTO + " TEXT DEFAULT 'NONE',"
+                        + KEY_PHOTO_URI + " TEXT,"
                         + KEY_LONGITUDE + " TEXT,"
                         + KEY_LATITUDE + " TEXT,"
                         + KEY_ACCEPTED_AT + " TEXT,"
@@ -291,9 +294,24 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + KEY_CHALLENGE_ID + " = '" + challenge_id + "' AND "
                 + KEY_USERID + " = '" + user_id + "'";
         Log.e("query", deletionQuery);
-        if (db!=null) {
+        if (db != null) {
             db.execSQL(deletionQuery);
         }
+    }
+    public Cursor wipeReward(String user_id,
+                             String challenge_id) {
+        // Remove rewards associated with challenge flagged for deletion
+        SQLiteDatabase db = this.getReadableDatabase();
+        String deleteRewardQuery = "SELECT "
+                + KEY_PHOTO_URI + " FROM "
+                + TABLE_CHALLENGE + " WHERE "
+                + KEY_USERID + " = '" + user_id + "' AND "
+                + KEY_CHALLENGE_ID + " = '" + challenge_id + "'";
+        Cursor mCursor = db.rawQuery(deleteRewardQuery, null);
+        if (mCursor != null) {
+            mCursor.moveToFirst();
+        }
+        return mCursor;
     }
     public void deleteChallenges(String user_id) {
         // Clear challenges pending deletion from local database
@@ -491,7 +509,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // Update current Distance from goal in local database
         String updateRewardLocation = "UPDATE "
                 + TABLE_CHALLENGE + " SET "
-                + KEY_PHOTO + " = '" + photoURI + "' AND "
+                + KEY_PHOTO_URI + " = '" + photoURI + "', "
                 + KEY_REWARD_RETRIEVED + " = 'YES' WHERE "
                 + KEY_USERID + " = '" + user_id + "' AND "
                 + KEY_CHALLENGE_ID + " = '" + challenge_id + "'";
